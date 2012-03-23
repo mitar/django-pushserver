@@ -2,12 +2,13 @@ import os
 
 from setuptools import setup, find_packages
 
-VERSION = '0.1'
+VERSION = '0.1.1'
 
 setup(
     name = 'django-pushserver',
     version = VERSION,
     description = "Push server for Django based on Leo Ponomarev's Basic HTTP Push Relay Protocol.",
+    long_description = open(os.path.join(os.path.dirname(__file__), 'README.txt')).read(),
     author = 'Mitar',
     author_email = 'mitar.django@tnode.com',
     url = 'https://github.com/mitar/django-pushserver',

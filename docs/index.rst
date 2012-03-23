@@ -2,8 +2,8 @@ django-pushserver's documentation
 =================================
 
 django-pushserver is a push server for Django_ based on Leo Ponomarev's `Basic
-HTTP Push Relay Protocol`_. Useful especially while developing Django
-applications using `Nginx HTTP push module`_ locally.
+HTTP Push Relay Protocol`_. Useful especially while locally developing Django
+applications using `Nginx HTTP push module`_.
 
 .. _Django: https://www.djangoproject.com/
 .. _Basic HTTP Push Relay Protocol: http://pushmodule.slact.net/protocol.html
