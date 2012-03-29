@@ -1,6 +1,8 @@
+from __future__ import absolute_import
+
 from django import template
 
-from pushserver.utils import updates
+from ..utils import updates
 
 register = template.Library()
 

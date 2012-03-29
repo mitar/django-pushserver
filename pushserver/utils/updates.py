@@ -1,5 +1,12 @@
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
 from django.conf import settings
-from django.utils import regex_helper
+from django.utils import regex_helper, simplejson
+
+from pushserver.utils import urllib
 
 def publisher_url(channel):
     push_server = getattr(settings, 'PUSH_SERVER', {})
@@ -50,3 +57,17 @@ def updates_url(channel):
         arg: channel,
     }
     return 'http://%s%s%s' % (address, port, subscriber)
+
+def send_update(channel_id, data):
+    serialized = StringIO()
+    simplejson.dump(data, serialized)
+
+    serialized.seek(0, 2)
+    length = serialized.tell()
+    serialized.seek(0)
+
+    req = urllib.Request(publisher_url(channel_id))
+    req.add_data(serialized)
+    req.add_unredirected_header('Content-type', 'application/json; charset=utf-8')
+    req.add_unredirected_header('Content-length', '%d' % length)
+    urllib.urlopen(req)

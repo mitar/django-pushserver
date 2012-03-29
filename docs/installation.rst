@@ -22,14 +22,14 @@ used for HTTP push. For example::
         'locations': (
             {
                 'type': 'subscriber',
-                'url': r'/updates/[^/]+',
+                'url': r'/updates/([^/]+)',
                 'polling': 'long',
                 'create_on_get': True,
                 'allow_origin': '*',
             },
             {
                 'type': 'publisher',
-                'url': r'/send-update/[^/]+',
+                'url': r'/send-update/([^/]+)',
             },
         ),
     }
