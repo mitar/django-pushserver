@@ -1,3 +1,26 @@
+var _super = $.ajaxSettings.xhr;
+$.ajaxSetup({
+	xhr: function() {
+		var xhr = _super();
+		var getAllResponseHeaders = xhr.getAllResponseHeaders;
+
+		xhr.getAllResponseHeaders = function() {
+			var allHeaders = getAllResponseHeaders.call(xhr);
+			if(allHeaders) {
+				return allHeaders;
+			}
+			allHeaders = "";
+			$(["Cache-Control", "Content-Language", "Content-Type", "Expires", "Last-Modified", "Pragma"]).each(function(i, header_name) {
+				if(xhr.getResponseHeader(header_name)) {
+					allHeaders += header_name + ": " + xhr.getResponseHeader( header_name ) + "\n";
+				}
+			});
+			return allHeaders;
+		};
+		return xhr;
+	}
+});
+
 var updatesProcessors = {};
 
 function registerUpdatesProcessor(type, processor) {
