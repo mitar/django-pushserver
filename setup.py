@@ -2,7 +2,7 @@ import os
 
 from setuptools import setup, find_packages
 
-VERSION = '0.1.4'
+VERSION = '0.1.5'
 
 if __name__ == '__main__':
     setup(
@@ -37,6 +37,6 @@ if __name__ == '__main__':
         ],
         install_requires = [
             'Django>=1.2',
-            'py_hbpush==0.1.0',
+            'py_hbpush==0.1.1',
         ],
     )
