@@ -2,7 +2,7 @@ import os
 
 from setuptools import setup, find_packages
 
-VERSION = '0.1.3'
+VERSION = '0.1.4'
 
 if __name__ == '__main__':
     setup(
@@ -32,7 +32,7 @@ if __name__ == '__main__':
         include_package_data = True,
         zip_safe = False,
         dependency_links = [
-            'https://github.com/mitar/py-hbpush/tarball/0.1.0-mitar#egg=py_hbpush-0.1.0',
+            'https://github.com/mitar/py-hbpush/tarball/0.1.1-mitar#egg=py_hbpush-0.1.1',
             'http://github.com/clement/brukva/tarball/bff451511a3cc09cd52bebcf6372a59d36567827#egg=brukva-0.0.1',
         ],
         install_requires = [

@@ -27,15 +27,18 @@ function listenForUpdates() {
         }
 
         function warn(message) {
-            if ((typeof window.console != "undefined") && (typeof window.console.warn == "function")) {
+            if ((typeof window.console != 'undefined') && (typeof window.console.warn == 'function')) {
                 window.console.warn(message);
             }
         }
 
         jQuery.ajax({
             'beforeSend': function (jqXHR) {
-                jqXHR.setRequestHeader("If-None-Match", etag);
-                jqXHR.setRequestHeader("If-Modified-Since", last_modified);
+                jqXHR.setRequestHeader('If-None-Match', etag);
+                jqXHR.setRequestHeader('If-Modified-Since', last_modified);
+            },
+            'xhrFields': {
+                'withCredentials': true
             },
             'url': updates_url,
             'dataType': 'json',

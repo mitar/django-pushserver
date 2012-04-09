@@ -25,7 +25,9 @@ used for HTTP push. For example::
                 'url': r'/updates/([^/]+)',
                 'polling': 'long',
                 'create_on_get': True,
-                'allow_origin': '*',
+                'allow_origin': 'http://127.0.0.1:8000',
+                'allow_credentials': True,
+                'passthrough': 'http://127.0.0.1:8000/passthrough',
             },
             {
                 'type': 'publisher',
@@ -35,3 +37,17 @@ used for HTTP push. For example::
     }
 
 Production settings should match those configured in Nginx.
+
+You should add passthrough URLs to ``urls.py``, matching URL configured in
+settings::
+
+    urlpatterns = patterns('',
+        # ...
+
+        url(r'^passthrough', include('pushserver.urls')),
+
+        # ...
+    )
+
+If you do not need or want passthrough just do not define it in ``PUSH_SERVER``
+setting. Passthrough URLs are also not needed in this case.

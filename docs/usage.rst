@@ -46,3 +46,24 @@ JavaScript code. To continue the example::
     }
 
     registerUpdatesProcessor('answer', updateAnswer);
+
+If you want to process passthrough requests clients are making when subscribing
+or unsubscribing, you can connect to provided signals::
+
+    from django import dispatch
+
+    from pushserver import signals
+
+    @dispatch.receiver(signals.passthrough)
+    def process_passthrough(sender, request, channel_id, action):
+        print request.user, channel_id, action
+
+``action`` is ``pushserver.signals.SUBSCRIBE_ACTION`` or
+``pushserver.signals.UNSUBSCRIBE_ACTION`` constant, depending whether user has
+just subscribed to or unsubscribed from channel. Because user credentials were
+being passed through in this example, Django session and authentication
+middlewares should work as expected, populating ``request.user``.
+
+Be aware that for each sent update, clients unsubscribe and soon afterwards
+subscribe again so many signals could be triggered in a rapid succession.
+Because of this signal receivers should be very light-weight.
