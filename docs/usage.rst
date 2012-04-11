@@ -54,9 +54,13 @@ or unsubscribing, you can connect to provided signals::
 
     from pushserver import signals
 
-    @dispatch.receiver(signals.passthrough)
-    def process_passthrough(sender, request, channel_id, action):
-        print request.user, channel_id, action
+    @dispatch.receiver(signals.channel_subscribe)
+    def process_channel_subscribe(sender, request, channel_id, **kwargs):
+        print "Subscribed", request.user, channel_id
+
+    @dispatch.receiver(signals.channel_unsubscribe)
+    def process_channel_unsubscribe(sender, request, channel_id, **kwargs):
+        print "Unsubscribed", request.user, channel_id
 
 ``action`` is ``pushserver.signals.SUBSCRIBE_ACTION`` or
 ``pushserver.signals.UNSUBSCRIBE_ACTION`` constant, depending whether user has
