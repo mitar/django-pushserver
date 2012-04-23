@@ -36,7 +36,10 @@ used for HTTP push. For example::
         ),
     }
 
-Production settings should match those configured in Nginx.
+Settings translate directly to settings of the `py-hbpush`_ package. Production
+settings should match those configured in Nginx.
+
+.. _py-hbpush: https://github.com/mitar/py-hbpush/tree/mitar
 
 You should add passthrough URLs to ``urls.py``, matching URL configured in
 settings::
