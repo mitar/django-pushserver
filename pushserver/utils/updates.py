@@ -33,7 +33,7 @@ def publisher_url(channel):
     }
     return 'http://%s%s%s' % (address, port, publisher)
 
-def updates_url(channel):
+def subscriber_url(channel):
     push_server = getattr(settings, 'PUSH_SERVER', {})
     port = push_server.get('port', 80)
     subscriber_pattern = None
