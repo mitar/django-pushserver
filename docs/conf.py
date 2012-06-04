@@ -232,7 +232,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'pushserver', u'django-pushserver Documentation',
-   u'wlan slovenija', 'django-pushserver', 'Push server for Django based.',
+   u'wlan slovenija', 'django-pushserver', 'Push server for Django.',
    'Miscellaneous'),
 ]
 
