@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 
 from setuptools import setup, find_packages
@@ -9,17 +11,13 @@ if __name__ == '__main__':
         name = 'django-pushserver',
         version = VERSION,
         description = "Push server for Django based on Leo Ponomarev's Basic HTTP Push Relay Protocol.",
-        long_description = open(os.path.join(os.path.dirname(__file__), 'README.txt')).read(),
+        long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
         author = 'Mitar',
         author_email = 'mitar.django@tnode.com',
         url = 'https://github.com/mitar/django-pushserver',
         license = 'AGPLv3',
         packages = find_packages(),
-        package_data = {
-            'pushserver' : [
-                'static/pushserver/*',
-            ],
-        },
+        package_data = {},
         classifiers = [
             'Development Status :: 4 - Beta',
             'Environment :: Web Environment',

@@ -1,4 +1,5 @@
 recursive-include pushserver/static *
+include docs/Makefile docs/*.py docs/*.rst
 include COPYING
 include LICENSE
 include *.py *.txt *.rst
