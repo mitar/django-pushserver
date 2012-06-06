@@ -4,9 +4,15 @@ from django.views.decorators import csrf
 
 from pushserver import signals
 
-# TODO: Should not be publicly accessible, prevent this?
+AUTHORIZED_IPS = ['127.0.0.1']
+
 @csrf.csrf_exempt
 def passthrough(request):
+    request_ip = request.META('REMOTE_ADDR')
+
+    if request_ip not in AUTHORIZED_IPS:
+        return http.HttpResponse(status=403)
+        
     if request.method != 'POST':
         raise exceptions.PermissionDenied
 
@@ -22,4 +28,4 @@ def passthrough(request):
     else:
         raise exceptions.PermissionDenied
 
-    return http.HttpResponse()
+    return http.HttpResponse()     
