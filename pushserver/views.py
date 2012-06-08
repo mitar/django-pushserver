@@ -28,4 +28,4 @@ def passthrough(request):
     else:
         raise exceptions.PermissionDenied
 
-    return http.HttpResponse()     
+    return http.HttpResponse()
