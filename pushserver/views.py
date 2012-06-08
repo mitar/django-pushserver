@@ -8,7 +8,7 @@ AUTHORIZED_IPS = ()
 
 @csrf.csrf_exempt
 def passthrough(request):
-    request_ip = request.META('REMOTE_ADDR')
+    request_ip = request.META.get('REMOTE_ADDR')
 
     if request_ip not in AUTHORIZED_IPS:
         return http.HttpResponse(status=403)
