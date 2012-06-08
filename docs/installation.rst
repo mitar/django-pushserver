@@ -41,6 +41,8 @@ settings should match those configured in Nginx.
 
 .. _py-hbpush: https://github.com/mitar/py-hbpush/tree/mitar
 
+We do not want our push server to be publicly accessible, so ``INTERNAL_IPS`` should be configured for passthrough to work.
+
 You should add passthrough URLs to ``urls.py``, matching URL configured in
 settings::
 
