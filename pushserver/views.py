@@ -4,7 +4,7 @@ from django.views.decorators import csrf
 
 from pushserver import signals
 
-AUTHORIZED_IPS = ()
+AUTHORIZED_IPS = IPList(['127.0.0.1.'])
 
 @csrf.csrf_exempt
 def passthrough(request):
