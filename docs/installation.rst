@@ -41,9 +41,6 @@ settings should match those configured in Nginx.
 
 .. _py-hbpush: https://github.com/mitar/py-hbpush/tree/mitar
 
-We do not want our push server to be publicly accessible, so ``INTERNAL_IPS``
-should be configured for passthrough to work.
-
 You should add passthrough URLs to ``urls.py``, matching URL configured in
 settings::
 
@@ -55,5 +52,18 @@ settings::
         # ...
     )
 
+Passthrough URLs are not publicly accessible, so you should use
+``INTERNAL_IPS`` to configure from which IPs they should be accessible. As you
+will probably run both Djagno development server and push server daemon on the
+same machine, this is probably simply::
+
+    INTERNAL_IPS = (
+        '127.0.0.1',
+    )
+
+When used in production where Nginx is making passthrough requests, it should
+match IP(s) on which you have Nginx running.
+
 If you do not need or want passthrough just do not define it in ``PUSH_SERVER``
-setting. Passthrough URLs are also not needed in this case.
+setting. Passthrough URLs and ` INTERNAL_IPS`` setting are also not needed in
+this case.
