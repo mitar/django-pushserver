@@ -1,12 +1,15 @@
 from django import http
+from django.conf import settings
 from django.core import exceptions
 from django.views.decorators import csrf
 
 from pushserver import signals
 
-# TODO: Should not be publicly accessible, prevent this?
 @csrf.csrf_exempt
 def passthrough(request):
+    if request.META.get('REMOTE_ADDR') not in settings.INTERNAL_IPS:
+        raise exceptions.PermissionDenied
+        
     if request.method != 'POST':
         raise exceptions.PermissionDenied
 
