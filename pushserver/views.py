@@ -7,9 +7,8 @@ from pushserver import signals
 
 @csrf.csrf_exempt
 def passthrough(request):
-
     if request.META.get('REMOTE_ADDR') not in settings.INTERNAL_IPS:
-        return http.HttpResponseForbidden()
+        raise exception.PermissionDenied
         
     if request.method != 'POST':
         raise exceptions.PermissionDenied
