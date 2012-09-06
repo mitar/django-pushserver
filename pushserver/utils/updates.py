@@ -58,13 +58,17 @@ def subscriber_url(channel):
     }
     return 'http://%s%s%s' % (address, port, subscriber)
 
-def send_update(channel_id, data):
-    serialized = StringIO()
-    simplejson.dump(data, serialized)
+def send_update(channel_id, data, already_serialized=False):
+    if already_serialized:
+        serialized = data
+        length = len(data)
+    else:
+        serialized = StringIO()
+        simplejson.dump(data, serialized)
 
-    serialized.seek(0, 2)
-    length = serialized.tell()
-    serialized.seek(0)
+        serialized.seek(0, 2)
+        length = serialized.tell()
+        serialized.seek(0)
 
     req = urllib.Request(publisher_url(channel_id))
     req.add_data(serialized)
