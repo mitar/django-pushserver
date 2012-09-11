@@ -164,7 +164,7 @@ class Command(management_base.BaseCommand):
         conf.update({
             'port': self.port,
             'address': self.addr,
-            })
+        })
         conf.update(getattr(settings, 'PUSH_SERVER', {}))
 
         self.stdout.write((
