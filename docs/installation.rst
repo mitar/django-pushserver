@@ -54,7 +54,7 @@ settings::
 
 Passthrough URLs are not publicly accessible, so you should use
 ``INTERNAL_IPS`` to configure from which IPs they should be accessible. As you
-will probably run both Djagno development server and push server daemon on the
+will probably run both Django development server and push server daemon on the
 same machine, this is probably simply::
 
     INTERNAL_IPS = (

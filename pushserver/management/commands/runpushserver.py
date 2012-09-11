@@ -6,15 +6,17 @@ import sys
 
 from django.core.management import base as management_base
 from django.core.management.commands import runserver
+from django.core import wsgi as django_wsgi
 
 import hbpush
 from hbpush import registry
 from hbpush.pubsub import publisher, subscriber
 from hbpush.store import memory, redis
 import tornado
-from tornado import httpserver, web, ioloop
+from tornado import httpserver, ioloop, web, wsgi as tornado_wsgi
 
-DEFAULT_PORT = "8001"
+DEFAULT_PORT = '8001'
+ALL_REQUESTS_DEFAULT_PORT = '8000'
 
 default_store = {
     'redis': {
@@ -114,8 +116,10 @@ class Command(management_base.BaseCommand):
     option_list = management_base.BaseCommand.option_list + (
         optparse.make_option('--ipv6', '-6', action='store_true', dest='use_ipv6', default=False,
             help='Tells Django to use a IPv6 address.'),
+        optparse.make_option('--allrequests', action='store_true', dest='allrequests', default=False,
+            help='Process also non-push requests.'),
     )
-    help = "Starts a push server for development."
+    help = "Starts a push server."
     args = '[optional port number, or ipaddr:port]'
 
     can_import_settings = True
@@ -123,6 +127,7 @@ class Command(management_base.BaseCommand):
 
     def handle(self, addrport='', *args, **options):
         self.use_ipv6 = options.get('use_ipv6')
+        self.allrequests = options.get('allrequests')
         if self.use_ipv6 and not socket.has_ipv6:
             raise management_base.CommandError('Your Python does not support IPv6.')
         if args:
@@ -130,7 +135,7 @@ class Command(management_base.BaseCommand):
         self._raw_ipv6 = False
         if not addrport:
             self.addr = ''
-            self.port = DEFAULT_PORT
+            self.port = ALL_REQUESTS_DEFAULT_PORT if self.allrequests else DEFAULT_PORT
         else:
             m = re.match(runserver.naiveip_re, addrport)
             if m is None:
@@ -155,6 +160,13 @@ class Command(management_base.BaseCommand):
         
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
 
+        conf = defaults.copy()
+        conf.update({
+            'port': self.port,
+            'address': self.addr,
+            })
+        conf.update(getattr(settings, 'PUSH_SERVER', {}))
+
         self.stdout.write((
             "Django version %(version)s, using settings %(settings)r\n"
             "Push server version %(push_version)s on Tornado version %(tornado_version)s\n"
@@ -165,20 +177,19 @@ class Command(management_base.BaseCommand):
             "push_version": hbpush.__version__,
             "tornado_version": tornado.version,
             "settings": settings.SETTINGS_MODULE,
-            "addr": self._raw_ipv6 and '[%s]' % self.addr or self.addr,
-            "port": self.port,
+            "addr": self._raw_ipv6 and '[%s]' % conf['address'] or conf['address'],
+            "port": conf['port'],
             "quit_command": quit_command,
         })
 
-        conf = defaults.copy()
-        conf.update({
-            'port': self.port,
-            'address': self.addr,
-        })
-        conf.update(getattr(settings, 'PUSH_SERVER', {}))
-
         conf['store'] = make_stores(conf['store'])
         conf['locations'] = map(functools.partial(make_location, stores=conf['store']), conf['locations'])
+
+        if self.allrequests:
+            wsgi_app = tornado_wsgi.WSGIContainer(django_wsgi.get_wsgi_application())
+            conf['locations'] += (
+                ('.*', web.FallbackHandler, {'fallback': wsgi_app}),
+            )
 
         import logging
         logging.getLogger().setLevel('INFO')

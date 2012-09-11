@@ -6,6 +6,16 @@ server)::
 
     ./manage.py runpushserver
 
+Or if you want that all requests are processed through push server (and
+non-push requests passed to Django), you can do::
+
+    ./manage.py runpushserver --allrequests
+
+(In this way you are not served static files auto-magically, like you might
+be used on Django development server, so you have to take care of that
+yourself. Auto-reloading on code change also doesn't happen. Furthermore,
+by default it runs on port 8000 instead of 8001.)
+
 Then you can push data to all clients subscribed to the given channel with
 simple HTTP request. If you for example want to push some JSON data (called
 update) you can use provided functions::
