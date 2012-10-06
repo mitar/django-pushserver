@@ -1,3 +1,5 @@
+import sys
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -6,6 +8,7 @@ except ImportError:
 from django.conf import settings
 from django.utils import regex_helper, simplejson
 
+from pushserver import signals
 from pushserver.utils import urllib
 
 def publisher_url(channel):
@@ -58,7 +61,7 @@ def subscriber_url(channel):
     }
     return 'http://%s%s%s' % (address, port, subscriber)
 
-def send_update(channel_id, data, already_serialized=False):
+def send_update(channel_id, data, already_serialized=False, ignore_errors=False):
     if already_serialized:
         serialized = data
         length = len(data)
@@ -70,8 +73,21 @@ def send_update(channel_id, data, already_serialized=False):
         length = serialized.tell()
         serialized.seek(0)
 
-    req = urllib.Request(publisher_url(channel_id))
-    req.add_data(serialized)
-    req.add_unredirected_header('Content-type', 'application/json; charset=utf-8')
-    req.add_unredirected_header('Content-length', '%d' % length)
-    urllib.urlopen(req)
+    request = urllib.Request(publisher_url(channel_id))
+    request.add_data(serialized)
+    request.add_unredirected_header('Content-type', 'application/json; charset=utf-8')
+    request.add_unredirected_header('Content-length', '%d' % length)
+
+    signals.pre_send_update.send(sender=sys.modules[__name__], channel_id=channel_id, data=data, already_serialized=already_serialized, request=request)
+
+    try:
+        response = urllib.urlopen(request)
+    except Exception, e:
+        signals.post_send_update.send(sender=sys.modules[__name__], channel_id=channel_id, data=data, already_serialized=already_serialized, request=request, response=e)
+
+        if ignore_errors or getattr(settings, 'PUSH_SERVER_IGNORE_ERRORS', False):
+            return
+
+        raise
+
+    signals.post_send_update.send(sender=sys.modules[__name__], channel_id=channel_id, data=data, already_serialized=already_serialized, request=request, response=response)
