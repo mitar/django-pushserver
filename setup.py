@@ -30,11 +30,11 @@ if __name__ == '__main__':
         include_package_data = True,
         zip_safe = False,
         dependency_links = [
-            'https://github.com/mitar/py-hbpush/tarball/0.1.3-mitar#egg=py_hbpush-0.1.3',
+            'https://github.com/mitar/py-hbpush/tarball/0.1.4-mitar#egg=py_hbpush-0.1.4',
             'http://github.com/clement/brukva/tarball/bff451511a3cc09cd52bebcf6372a59d36567827#egg=brukva-0.0.1',
         ],
         install_requires = [
             'Django>=1.2',
-            'py_hbpush==0.1.3',
+            'py_hbpush==0.1.4',
         ],
     )

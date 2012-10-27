@@ -21,7 +21,7 @@ ALL_REQUESTS_DEFAULT_PORT = '8000'
 default_store = {
     'redis': {
         'port': 6379,
-        'host': 'localhost',
+        'host': '127.0.0.1',
         'key_prefix': '',
         'database': 0,
     },
@@ -47,6 +47,7 @@ default_location = {
 defaults = {
     'port': DEFAULT_PORT,
     'address': '127.0.0.1',
+    'servername': None,
     'store': {
         'type': 'memory',
     },
@@ -85,7 +86,7 @@ def make_stores(stores_dict):
         stores_dict = {'default': stores_dict}
     return dict([(k, make_store(stores_dict[k])) for k in stores_dict])
 
-def make_location(loc_dict, stores=None):
+def make_location(loc_dict, stores=None, servername=None):
     if stores is None:
         stores = {}
     
@@ -108,7 +109,10 @@ def make_location(loc_dict, stores=None):
 
     url = loc_conf.pop('url', loc_conf.pop('prefix', '')+'(.+)')
     store_id = loc_conf.pop('store')
-    kwargs = {'registry': stores[store_id]['registry']}
+    kwargs = {
+        'registry': stores[store_id]['registry'],
+        'servername': servername,
+    }
     kwargs.update(loc_conf)
     return (url, cls, kwargs)
 
@@ -183,12 +187,18 @@ class Command(management_base.BaseCommand):
         })
 
         conf['store'] = make_stores(conf['store'])
-        conf['locations'] = map(functools.partial(make_location, stores=conf['store']), conf['locations'])
+        conf['locations'] = map(functools.partial(make_location, stores=conf['store'], servername=conf['servername']), conf['locations'])
 
         if self.allrequests:
+            class FallbackHandlerWithServerName(web.FallbackHandler):
+                def set_default_headers(self):
+                    if conf.get('servername', None):
+                        # TODO: Does not really work, https://github.com/sunblaze-ucb/threader/issues/4
+                        self.set_header('Server', conf.get('servername', None))
+
             wsgi_app = tornado_wsgi.WSGIContainer(django_wsgi.get_wsgi_application())
             conf['locations'] += (
-                ('.*', web.FallbackHandler, {'fallback': wsgi_app}),
+                ('.*', FallbackHandlerWithServerName, {'fallback': wsgi_app}),
             )
 
         import logging
