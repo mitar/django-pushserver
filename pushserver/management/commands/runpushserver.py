@@ -13,7 +13,7 @@ from hbpush import registry
 from hbpush.pubsub import publisher, subscriber
 from hbpush.store import memory, redis
 import tornado
-from tornado import httpserver, ioloop, web, wsgi as tornado_wsgi
+from tornado import httpserver, ioloop, options as tornado_options, web, wsgi as tornado_wsgi
 
 DEFAULT_PORT = '8001'
 ALL_REQUESTS_DEFAULT_PORT = '8000'
@@ -203,6 +203,7 @@ class Command(management_base.BaseCommand):
 
         import logging
         logging.getLogger().setLevel('INFO')
+        tornado_options.enable_pretty_logging()
 
         httpserver.HTTPServer(web.Application(conf['locations'])).listen(conf['port'], conf['address'])
 
