@@ -17,6 +17,8 @@ from tornado import httpserver, ioloop, options as tornado_options, web, wsgi as
 
 DEFAULT_PORT = '8001'
 ALL_REQUESTS_DEFAULT_PORT = '8000'
+DEFAULT_IPV4_ADDRESS = '127.0.0.1'
+DEFAULT_IPV6_ADDRESS = '::1'
 
 default_store = {
     'redis': {
@@ -45,8 +47,8 @@ default_location = {
 }
 
 defaults = {
-    'port': DEFAULT_PORT,
-    'address': '127.0.0.1',
+    'port': None, # DEFAULT_PORT or ALL_REQUESTS_DEFAULT_PORT
+    'address': None, # DEFAULT_IPV4_ADDRESS or DEFAULT_IPV6_ADDRESS
     'servername': None,
     'store': {
         'type': 'memory',
@@ -119,7 +121,7 @@ def make_location(loc_dict, stores=None, servername=None):
 class Command(management_base.BaseCommand):
     option_list = management_base.BaseCommand.option_list + (
         optparse.make_option('--ipv6', '-6', action='store_true', dest='use_ipv6', default=False,
-            help='Tells Django to use a IPv6 address.'),
+            help='Tells Django to use an IPv6 address.'),
         optparse.make_option('--allrequests', action='store_true', dest='allrequests', default=False,
             help='Process also non-push requests.'),
     )
@@ -132,31 +134,28 @@ class Command(management_base.BaseCommand):
     def handle(self, addrport='', *args, **options):
         self.use_ipv6 = options.get('use_ipv6')
         self.allrequests = options.get('allrequests')
-        if self.use_ipv6 and not socket.has_ipv6:
-            raise management_base.CommandError('Your Python does not support IPv6.')
+        self._raw_ipv6 = False
         if args:
             raise management_base.CommandError('Usage is runpushserver %s' % self.args)
-        self._raw_ipv6 = False
         if not addrport:
-            self.addr = ''
-            self.port = ALL_REQUESTS_DEFAULT_PORT if self.allrequests else DEFAULT_PORT
+            self.address = None
+            self.port = None
         else:
             m = re.match(runserver.naiveip_re, addrport)
             if m is None:
                 raise management_base.CommandError('"%s" is not a valid port number or address:port pair.' % addrport)
-            self.addr, _ipv4, _ipv6, _fqdn, self.port = m.groups()
+            self.address, _ipv4, _ipv6, _fqdn, self.port = m.groups()
             if not self.port.isdigit():
                 raise management_base.CommandError("%r is not a valid port number." % self.port)
-            if self.addr:
+            if self.address:
                 if _ipv6:
-                    self.addr = self.addr[1:-1]
+                    self.address = self.address[1:-1]
                     self.use_ipv6 = True
                     self._raw_ipv6 = True
                 elif self.use_ipv6 and not _fqdn:
-                    raise management_base.CommandError('"%s" is not a valid IPv6 address.' % self.addr)
-        if not self.addr:
-            self.addr = self.use_ipv6 and '::1' or '127.0.0.1'
-            self._raw_ipv6 = bool(self.use_ipv6)
+                    raise management_base.CommandError('"%s" is not a valid IPv6 address.' % self.address)
+        if self.use_ipv6 and not socket.has_ipv6:
+            raise management_base.CommandError('Your Python does not support IPv6.')
         self.run(*args, **options)
 
     def run(self, *args, **options):
@@ -165,23 +164,35 @@ class Command(management_base.BaseCommand):
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
 
         conf = defaults.copy()
-        conf.update({
-            'port': self.port,
-            'address': self.addr,
-        })
         conf.update(getattr(settings, 'PUSH_SERVER', {}))
+
+        if self.port:
+            conf['port'] = self.port
+        if self.address:
+            conf['address'] = self.address
+
+        if not conf['port']:
+            conf['port'] = ALL_REQUESTS_DEFAULT_PORT if self.allrequests else DEFAULT_PORT
+        if not conf['address']:
+            conf['address'] = DEFAULT_IPV6_ADDRESS if self.use_ipv6 else DEFAULT_IPV4_ADDRESS
+
+        if self._raw_ipv6 or (re.search(r'^[a-fA-F0-9:]+$', conf['address']) is not None and ':' in conf['address']):
+            # Raw IPv6 address
+            address = '[%s]' % conf['address']
+        else:
+            address = conf['address']
 
         self.stdout.write((
             "Django version %(version)s, using settings %(settings)r\n"
             "Push server version %(push_version)s on Tornado version %(tornado_version)s\n"
-            "Development push server is running at http://%(addr)s:%(port)s/\n"
+            "Development push server is running at http://%(address)s:%(port)s/\n"
             "Quit the server with %(quit_command)s.\n"
         ) % {
             "version": self.get_version(),
             "push_version": hbpush.__version__,
             "tornado_version": tornado.version,
             "settings": settings.SETTINGS_MODULE,
-            "addr": self._raw_ipv6 and '[%s]' % conf['address'] or conf['address'],
+            "address": address,
             "port": conf['port'],
             "quit_command": quit_command,
         })
