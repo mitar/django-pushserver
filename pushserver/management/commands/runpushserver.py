@@ -15,6 +15,8 @@ from hbpush.store import memory, redis
 import tornado
 from tornado import httpserver, ioloop, options as tornado_options, web, wsgi as tornado_wsgi
 
+from pushserver.utils import updates
+
 DEFAULT_PORT = '8001'
 ALL_REQUESTS_DEFAULT_PORT = '8000'
 DEFAULT_IPV4_ADDRESS = '127.0.0.1'
@@ -196,6 +198,8 @@ class Command(management_base.BaseCommand):
             "port": conf['port'],
             "quit_command": quit_command,
         })
+
+        updates.current_host = '%s:%s' % (address, conf['port'])
 
         conf['store'] = make_stores(conf['store'])
         conf['locations'] = map(functools.partial(make_location, stores=conf['store'], servername=conf['servername']), conf['locations'])
