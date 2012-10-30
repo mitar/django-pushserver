@@ -111,7 +111,7 @@ def make_location(loc_dict, stores=None, servername=None):
     else:
         raise management_base.CommandError('Invalid location type "%s".' % (loc_type,))
 
-    url = loc_conf.pop('url', loc_conf.pop('prefix', '')+'(.+)')
+    url = loc_conf.pop('url', loc_conf.pop('prefix', '') + '(.+)')
     store_id = loc_conf.pop('store')
     kwargs = {
         'registry': stores[store_id]['registry'],
@@ -126,6 +126,8 @@ class Command(management_base.BaseCommand):
             help='Tells Django to use an IPv6 address.'),
         optparse.make_option('--allrequests', action='store_true', dest='allrequests', default=False,
             help='Process also non-push requests.'),
+        optparse.make_option('--forcehost', action='store', type='string', dest='forcehost',
+            help='When processing also non-push requests, force all request to one host.'),
     )
     help = "Starts a push server."
     args = '[optional port number, or ipaddr:port]'
@@ -136,6 +138,9 @@ class Command(management_base.BaseCommand):
     def handle(self, addrport='', *args, **options):
         self.use_ipv6 = options.get('use_ipv6')
         self.allrequests = options.get('allrequests')
+        self.forcehost = options.get('forcehost')
+        if self.forcehost and not self.allrequests:
+            raise management_base.CommandError("'forcehost' can be set only with 'allrequests'.")
         self._raw_ipv6 = False
         if args:
             raise management_base.CommandError('Usage is runpushserver %s' % self.args)
@@ -220,7 +225,22 @@ class Command(management_base.BaseCommand):
         logging.getLogger().setLevel('INFO')
         tornado_options.enable_pretty_logging()
 
-        httpserver.HTTPServer(web.Application(conf['locations'])).listen(conf['port'], conf['address'])
+        if self.forcehost:
+            class RedirectHandler(web.RequestHandler):
+                def initialize(self, forcehost):
+                    self._forcehost = forcehost
+
+                def prepare(self):
+                    url = self.request.protocol + '://' + self._forcehost + self.request.uri
+                    self.redirect(url, permanent=True)
+
+            application = web.Application()
+            application.add_handlers('^%s$' % re.escape(self.forcehost.lower().split(':')[0]), conf['locations'])
+            application.add_handlers('.*$', (('.*', RedirectHandler, {'forcehost': self.forcehost}),))
+        else:
+            application = web.Application(conf['locations'])
+
+        httpserver.HTTPServer(application).listen(conf['port'], conf['address'])
 
         try:
             ioloop.IOLoop.instance().start()
