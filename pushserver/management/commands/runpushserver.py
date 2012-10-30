@@ -1,8 +1,4 @@
-import functools
-import optparse
-import re
-import socket
-import sys
+import functools, optparse, re, socket, sys
 
 from django.core.management import base as management_base
 from django.core.management.commands import runserver
@@ -210,15 +206,23 @@ class Command(management_base.BaseCommand):
         conf['locations'] = map(functools.partial(make_location, stores=conf['store'], servername=conf['servername']), conf['locations'])
 
         if self.allrequests:
-            class FallbackHandlerWithServerName(web.FallbackHandler):
-                def set_default_headers(self):
-                    if conf.get('servername', None):
-                        # TODO: Does not really work, https://github.com/sunblaze-ucb/threader/issues/4
-                        self.set_header('Server', conf.get('servername', None))
+            class SetServenameMiddleware(object):
+                def __init__(self, application):
+                    self.application = application
 
-            wsgi_app = tornado_wsgi.WSGIContainer(django_wsgi.get_wsgi_application())
+                def __call__(self, environ, start_response):
+                    def servername_start_response(status, response_headers, exc_info=None):
+                        if conf.get('servername', None):
+                            header_set = set(k.lower() for (k, v) in response_headers)
+                            if 'server' not in header_set:
+                                response_headers.append(('Server', conf.get('servername', None)))
+                        return start_response(status, response_headers, exc_info)
+
+                    return self.application(environ, servername_start_response)
+
+            wsgi_app = tornado_wsgi.WSGIContainer(SetServenameMiddleware(django_wsgi.get_wsgi_application()))
             conf['locations'] += (
-                ('.*', FallbackHandlerWithServerName, {'fallback': wsgi_app}),
+                ('.*', web.FallbackHandler, {'fallback': wsgi_app}),
             )
 
         import logging
@@ -233,6 +237,10 @@ class Command(management_base.BaseCommand):
                 def prepare(self):
                     url = self.request.protocol + '://' + self._forcehost + self.request.uri
                     self.redirect(url, permanent=True)
+
+                def set_default_headers(self):
+                    if conf.get('servername', None):
+                        self.set_header('Server', conf.get('servername', None))
 
             application = web.Application()
             application.add_handlers('^%s$' % re.escape(self.forcehost.lower().split(':')[0]), conf['locations'])
