@@ -37,6 +37,7 @@
                 'xhrFields': {
                     'withCredentials': true
                 },
+                'cache': false,
                 'url': channel_url,
                 'dataType': 'json',
                 'type': 'GET',
