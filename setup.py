@@ -42,5 +42,6 @@ if __name__ == '__main__':
         install_requires = [
             'Django>=1.2',
             'py_hbpush==0.1.4',
+            'tornado<3',
         ],
     )
