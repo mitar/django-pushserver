@@ -13,8 +13,14 @@ used for HTTP push. For example::
     PUSH_SERVER = {
         'port': 8001,
         'address': '127.0.0.1',
-        'publisher_host': '127.0.0.1:8001',
-        'subscriber_host': '127.0.0.1:8001',
+        'publisher_host': {
+            'location': '127.0.0.1:8001',
+            'secure': True,
+        },
+        'subscriber_host': {
+            'location': '127.0.0.1:8001',
+            'secure': False,
+        },
         'store': {
             'type': 'memory',
             'min_messages': 0,
