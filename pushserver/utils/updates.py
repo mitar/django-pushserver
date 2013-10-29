@@ -18,14 +18,19 @@ current_host = None
 
 def publisher_url(channel):
     push_server = getattr(settings, 'PUSH_SERVER', {})
-    publisher_host = push_server.get('publisher_host', current_host)
+    publisher_host = push_server.get('publisher_host', {
+        'domain': current_host,
+        'secure': False,
+    })
+    publisher_host_domain = publisher_host['domain']
+    publisher_host_secure = publisher_host['secure']
     publisher_pattern = None
     for location in push_server.get('locations', ()):
         if location.get('type') == 'publisher':
             publisher_pattern = location.get('url')
             # TODO: Currently we support only the first publisher URL
             break
-    if not publisher_host or not publisher_pattern:
+    if not publisher_host_domain or not publisher_pattern:
         raise ValueError("Missing required settings")
     publisher = regex_helper.normalize(publisher_pattern)
     if len(publisher) != 1 or len(publisher[0][1]) != 1:
@@ -34,18 +39,27 @@ def publisher_url(channel):
     publisher = publisher % {
         arg: channel,
     }
-    return 'http://%s%s' % (publisher_host, publisher)
+    return 'http{0}://{1}{2}'.format(
+        ('s' if publisher_host_secure else ''),
+        publisher_host_domain,
+        publisher,
+    )
 
 def subscriber_url(channel):
     push_server = getattr(settings, 'PUSH_SERVER', {})
-    subscriber_host = push_server.get('subscriber_host', current_host)
+    subscriber_host = push_server.get('subscriber_host', {
+        'domain': current_host,
+        'secure': False,
+    })
+    subscriber_host_domain = subscriber_host['domain']
+    subscriber_host_secure = subscriber_host['secure']
     subscriber_pattern = None
     for location in push_server.get('locations', ()):
         if location.get('type') == 'subscriber':
             subscriber_pattern = location.get('url')
             # TODO: Currently we support only the first subscriber URL
             break
-    if not subscriber_host or not subscriber_pattern:
+    if not subscriber_host_domain or not subscriber_pattern:
         raise ValueError("Missing required settings")
     subscriber = regex_helper.normalize(subscriber_pattern)
     if len(subscriber) != 1 or len(subscriber[0][1]) != 1:
@@ -54,7 +68,11 @@ def subscriber_url(channel):
     subscriber = subscriber % {
         arg: channel,
     }
-    return 'http://%s%s' % (subscriber_host, subscriber)
+    return 'http{0}://{1}{2}'.format(
+        ('s' if subscriber_host_secure else ''),
+        subscriber_host_domain,
+        subscriber,
+    )
 
 def send_update(channel_id, data, already_serialized=False, ignore_errors=False):
     if already_serialized:
