@@ -10,7 +10,7 @@ try:
 except ImportError:
     pass
 
-VERSION = '0.3.0alt'
+VERSION = '0.3.2'
 
 if __name__ == '__main__':
     setup(

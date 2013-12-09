@@ -95,7 +95,7 @@ def send_update(channel_id, data, already_serialized=False, ignore_errors=False)
 
     try:
         response = urllib.urlopen(request)
-    except Exception, e:
+    except Exception as e:
         signals.post_send_update.send(sender=sys.modules[__name__], channel_id=channel_id, data=data, already_serialized=already_serialized, request=request, response=e)
 
         if ignore_errors or getattr(settings, 'PUSH_SERVER_IGNORE_ERRORS', False):
