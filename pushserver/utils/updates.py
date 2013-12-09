@@ -3,7 +3,10 @@ import sys
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    try:
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
 
 from django.conf import settings
 from django.utils import regex_helper, simplejson
