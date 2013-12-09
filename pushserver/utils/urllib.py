@@ -1,4 +1,7 @@
-from urllib2 import *
+try:
+    from urllib2 import *
+except ImportError:
+    from urllib.request import *
 
 class LessStrictHTTPErrorProcessor(HTTPErrorProcessor):
     """
