@@ -21,12 +21,9 @@ current_host = None
 
 def publisher_url(channel):
     push_server = getattr(settings, 'PUSH_SERVER', {})
-    publisher_host = push_server.get('publisher_host', {
-        'location': current_host,
-        'secure': False,
-    })
-    publisher_host_location = publisher_host['location']
-    publisher_host_secure = publisher_host['secure']
+    publisher_host = push_server.get('publisher_host', {})
+    publisher_host_location = publisher_host.get('location', current_host)
+    publisher_host_secure = publisher_host.get('secure', False)
     publisher_pattern = None
     for location in push_server.get('locations', ()):
         if location.get('type') == 'publisher':
@@ -50,12 +47,9 @@ def publisher_url(channel):
 
 def subscriber_url(channel):
     push_server = getattr(settings, 'PUSH_SERVER', {})
-    subscriber_host = push_server.get('subscriber_host', {
-        'location': current_host,
-        'secure': False,
-    })
-    subscriber_host_location = subscriber_host['location']
-    subscriber_host_secure = subscriber_host['secure']
+    subscriber_host = push_server.get('subscriber_host', {})
+    subscriber_host_location = subscriber_host.get('location', current_host)
+    subscriber_host_secure = subscriber_host.get('secure', False)
     subscriber_pattern = None
     for location in push_server.get('locations', ()):
         if location.get('type') == 'subscriber':
