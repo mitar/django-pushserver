@@ -49,6 +49,15 @@ settings should match those configured in Nginx.
 
 .. _py-hbpush: https://github.com/mitar/py-hbpush/tree/mitar
 
+.. warning::
+
+    Passthrough is `not yet supported in Nginx`_. The implementation in `django-pushserver`
+    passes original headers to a special passthrough URL so that server behind can for
+    example from cookies determine which user has subscribed to or unsubscribed from
+    the channel. This is useful to keep track of active users connected to the site.
+
+.. _not yet supported in Nginx: https://github.com/slact/nginx_http_push_module/issues/80
+
 You should add passthrough URLs to ``urls.py``, matching URL configured in
 settings::
 
@@ -73,5 +82,5 @@ When used in production where Nginx is making passthrough requests, it should
 match IP(s) on which you have Nginx running.
 
 If you do not need or want passthrough just do not define it in ``PUSH_SERVER``
-setting. Passthrough URLs and ` INTERNAL_IPS`` setting are also not needed in
+setting. Passthrough URLs and ``INTERNAL_IPS`` setting are also not needed in
 this case.
