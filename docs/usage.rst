@@ -84,3 +84,12 @@ session and authentication middlewares should work as expected, populating
 Be aware that for each sent update, clients unsubscribe and soon afterwards
 subscribe again so many signals could be triggered in a rapid succession.
 Because of this signal receivers should be very light-weight.
+
+.. warning::
+
+    Passthrough is `not yet supported in Nginx`_. The implementation in `django-pushserver`
+    passes original headers to a special passthrough URL so that server behind can for
+    example from cookies determine which user has subscribed to or unsubscribed from
+    the channel. This is useful to keep track of active users connected to the site.
+
+.. _not yet supported in Nginx: https://github.com/slact/nginx_http_push_module/issues/80
