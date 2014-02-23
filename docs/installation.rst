@@ -51,7 +51,7 @@ settings should match those configured in Nginx.
 
 .. warning::
 
-    Passthrough is `not yet supported in Nginx`_. The implementation in `django-pushserver`
+    Passthrough is `not yet supported in Nginx`_. The implementation in django-pushserver
     passes original headers to a special passthrough URL so that server behind can for
     example from cookies determine which user has subscribed to or unsubscribed from
     the channel. This is useful to keep track of active users connected to the site.
